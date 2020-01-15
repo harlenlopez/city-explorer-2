@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3001;
 //configure express
 app.use(cors());
 
-//constructor function
+//constructor function . ---- I like how you put the try catch in the constructor in case the data collected is not working (VR)
 const Location = function(city) {
   //get the data
   try { 
@@ -32,7 +32,7 @@ const Location = function(city) {
 
 
 
-
+// you could delete this too 36-40... (VR)
 /* {
   search_query: 'Lynwood'
   formatted_query: etc etc...'
@@ -41,7 +41,7 @@ const Location = function(city) {
 
 
 
-//routes
+//routes ---- you could delete this line 45-50 since it is redundant now (VR)
 app.get('/', (req, res) => {
   // console.log(req.query);
   // console.log(req.params); 
