@@ -1,11 +1,7 @@
 'use strict'
 //express library is my server
 const express = require('express');
-// const pg = require('pg');
-//const client = new pg.client(process.env.DATABASE_URL);
-//client.on('error', err => console.error(err));
 const app = express();
-//allows our server talk to the front end
 const cors = require('cors');
 const superagent = require('superagent');
 require('dotenv').config();
@@ -16,9 +12,10 @@ const PORT = process.env.PORT || 3001;
 app.get('/', homeHandler);
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
-=======
-const PORT = process.env.PORT || 3001;
+app.use('*', nonFoundHandler);
+app.use(errorHandler);
 
+const PORT = process.env.PORT || 3001;
 
 //LOCATION
 
@@ -27,22 +24,38 @@ function homeHandler(req, res) {
   res.status(200).send('Server is alive this is the home page');
 }
 
+
 function locationHandler(req, res) {
-  // res.status(200).send('Server is alive this is the location page');
 
-//constructor function . ---- I like how you put the try catch in the constructor in case the data collected is not working (VR)
-const Location = function(city) {
+  let city = req.query.city;
+  let key = process.env.LOCATION_IQ_KEY;
+  const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json&limit=1`;
 
-  //get the data
-  const geoData = require('./data/geo.json');
-  const city = req.query.city;
-  console.log(req);
-  //run the data through the constructor and push to new array
-  const locationData = new Location(city, geoData);
-  //send the new array back to the front end 
-  res.status(200).json(locationData);
-
+  if (location[url]) {
+    response.send(locations[url]);
+  } else {
+    superagent.get(url)
+      .then(data => {
+        const geoData = data.body[0];
+        const locationData = new Location(city, geoData);
+        locations[url] = locationData;
+        response.send(locationData);
+      })
+      .catch((error) => {
+        errorHandler('You done messed up A A Ron', req, res);
+      })
+  }
 }
+
+
+
+function errorHandler(error, request, response) { console.log('ERROR',error);
+  response.status(500).send(error);
+}
+
+function nonFoundHandler(request, response) {response.status(404).send('eh eh eh, thats not the pathwords')
+};
+
 //constructor
 function Location(city, geoData) {
   this.search_query = city;
@@ -53,29 +66,53 @@ function Location(city, geoData) {
 
 }
 
+// function weatherHandler(request,response){
+//   // get data from darksky.json
+//   try {
+//     let weatherresponseArray = [];
+//     console.log('the weather data is working');
+//     const weatherData = require('./data/darksky.json');
+//     let weatherArray = weatherData.daily.data;
 
+//     weatherresponseArray = weatherArray.map(obj => new WeatherObject(obj));
+
+//     console.log('this is my wweather response array', weatherresponseArray);
+
+//     response.send(weatherresponseArray);
+//     response.status(200).json(weatherresponseArray);
+//   }
+//   catch (error) {
+//     errorHandler ('not today', request, response);
+//   }
+// }
 
 //WEATHER
 function weatherHandler(req, res) {
   // res.status(200).send('Server is alive this is the weather page');
-  try{
-  const weatherData = require('./data/darksky.json');
-  let weatherDataArray = [];
-  let weatherArray = weatherData.daily.data;
-  console.log('weather data',weatherArray);
-  // console.log('we are in handler',weatherArray);
-   weatherArray.forEach((obj) => {
-    let day = new Weather(obj);
-    weatherDataArray.push(day);
+  try {
+    const weatherData = require('./data/darksky.json');
+    let weatherDataArray = [];
+    let weatherArray = weatherData.daily.data;
+    // console.log('weather data',weatherArray);
+    // console.log('we are in handler',weatherArray);
+    //  weatherArray.forEach((obj) => {
+    //   let day = new Weather(obj);
+    //   weatherDataArray.push(day);
     // console.log('this is the day log',day);
+    //code from class demo
+    superagent.get(url)
+      .then(data => {
+        const weatherSummaries = data.body.daily.data.map(day => {
+          return new Weather(day);
+        });
+        response.status(200).json(weatherSummaries);
+      });
 
-  });
-
-  console.log('this is the new array', weatherDataArray);
-  res.send(weatherDataArray);
-  // res.status(200).json(weatherDataArray);
+    console.log('this is the new array', weatherDataArray);
+    res.send(weatherDataArray);
+    // res.status(200).json(weatherDataArray);
   }
-    catch (err) {
+  catch (err) {
     console.log(err);
   }
 
@@ -129,10 +166,12 @@ const Weather = function (data) {
 }
 
 
+
 //CONSTRUCTOR
 function Weather(daily) {
   this.forecast = daily.summary;
-  this.time = daily.time;
+  this.time = new Date(daily.time * 1000).toString().slice(0, 15);
+
 }
 
 //constructor function
@@ -187,8 +226,4 @@ function Weather(daily) {
 // //configure port
 app.listen(PORT, () => { console.log(`Your server is listening on ${PORT}`) });
 
-//----------routes----------
-
-// listen
-app.listen(PORT, () => { console.log(`Your server is listening on ${PORT}`) });
 
