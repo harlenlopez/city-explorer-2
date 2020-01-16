@@ -22,12 +22,17 @@ const PORT = process.env.PORT || 3001;
 
 //LOCATION
 
+
 function homeHandler(req, res) {
   res.status(200).send('Server is alive this is the home page');
 }
 
 function locationHandler(req, res) {
   // res.status(200).send('Server is alive this is the location page');
+
+//constructor function . ---- I like how you put the try catch in the constructor in case the data collected is not working (VR)
+const Location = function(city) {
+
   //get the data
   const geoData = require('./data/geo.json');
   const city = req.query.city;
@@ -168,17 +173,13 @@ function Weather(daily) {
 
 
 
+
 // app.get('/weather', (req,res) => {
 //   console.log('weather working');
 
 
 
 
-//   const reqCity = req.query.city;
-//   const responseObj = new Weather(reqCity);
-//   console.log("in transit", responseObj);
-//   res.status(200).send(responseObj);
-// })
 
 // app.get('*',(req,res) => {
 //   res.status(404).send('that route cannot be found');
