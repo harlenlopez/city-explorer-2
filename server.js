@@ -47,7 +47,7 @@ function errorHandler(error, request, response) { console.log('ERROR',error);
   response.status(500).send(error);
 }
 
-function nonFoundHandler(request, response) {response.status(404).send('this route does not exist')
+function nonFoundHandler(request, response) {response.status(404).send('eh eh eh, thats not the pathwords')
 };
 
 //constructor
@@ -76,7 +76,7 @@ function Location(city, geoData) {
 //     response.status(200).json(weatherresponseArray);
 //   }
 //   catch (error) {
-//     errorHandler ('So sorry Weather handler', request, response);
+//     errorHandler ('not today', request, response);
 //   }
 // }
 
