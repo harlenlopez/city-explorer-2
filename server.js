@@ -72,12 +72,11 @@ function weatherHandler(req, res) {
 
 }
 
-
-
 //CONSTRUCTOR
 function Weather(daily) {
   this.forecast = daily.summary;
-  this.time = daily.time;
+  this.time = new Date(daily.time * 1000).toString().slice(0, 15);
+
 }
 
 //constructor function
