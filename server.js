@@ -1,8 +1,10 @@
+
 //utilized the example code from the demo to organize and work out processes 
 
 'use strict'
 //express library is my server
 require('dotenv').config();
+
 const express = require('express');
 // const pg = require('pg');
 const PORT = process.env.PORT || 3001;
@@ -11,12 +13,18 @@ const app = express();
 // client.on('error', err => console.error(err));
 const superagent = require('superagent');
 const cors = require('cors');
+
 app.use(cors());
 
 //define routes
 // app.get('/', homeHandler);
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
+
+
+function homeHandler(req, res) {
+  res.status(200).send('Server is alive this is the home page');
+}
 
 
 //LOCATION
@@ -26,16 +34,20 @@ app.get('/weather', weatherHandler);
 // }
 let locations = {};
 function locationHandler(req, res) {
+
   let city = req.query.city;
   let key = process.env.LOCATION_IQ_KEY;
   const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json&limit=1`;
 
+
   if (locations[url]) {
     res.send(locations[url]);
+
   } else {
     superagent.get(url)
       .then(data => {
         const geoData = data.body[0];
+
         const location = new Location(city, geoData);
         locations[url] = location;
         res.send(location);
@@ -104,3 +116,4 @@ res.status(500).send(error);
 
 
 app.listen(PORT, () => console.log(`Your server is listening on ${PORT}`));
+
