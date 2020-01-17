@@ -20,7 +20,7 @@ app.use(cors());
 // app.get('/', homeHandler);
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
-
+app.get('/events', events);
 
 function homeHandler(req, res) {
   res.status(200).send('Server is alive this is the home page');
@@ -103,6 +103,31 @@ function Weather(day) {
   this.forecast = day.summary;
   this.time = new Date(day.time * 1000).toString().slice(0, 15);
 }  
+
+//used from the lab video Eugene shared
+function events(req, res){
+  let key = process.env.EVENTFUL_DB;
+  let {search_query} = req.query;
+  const eventUrl = `http://api.eventful.com/json/events/search?keywords=music&location=${search_query}&app_key=${key}`;
+    superagent.get(eventUrl)
+      .then(eventData => {
+        let eventMassData =JSON.parse(eventData.text);
+        let localEvent = eventMassData.events.event.map(thisEventData => {
+          return new Event(thisEventData);
+        })
+        res.status(200).send(localEvent)
+      })
+      .catch(err => console.error('wow, you actually did', err));
+}
+
+const Event = function (data) {
+      this.link = data.url;
+     this.name = data.title;
+      this.event_date = data.start_time;
+      this.summary = data.description;
+    
+  }
+
 
 app.use('*', notFoundHandler);
 app.use(errorHandler);
