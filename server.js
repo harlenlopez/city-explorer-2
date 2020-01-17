@@ -1,61 +1,106 @@
+//utilized the example code from the demo to organize and work out processes 
+
 'use strict'
-
-const express = require('express');
-const app = express();
-const cors = require('cors');
+//express library is my server
 require('dotenv').config();
-
-const PORT = process.env.PORT || 3001; 
-
-
-//configure express
+const express = require('express');
+// const pg = require('pg');
+const PORT = process.env.PORT || 3001;
+const app = express();
+// const client = new pg.Client(precess.env.DATABASE_URL);
+// client.on('error', err => console.error(err));
+const superagent = require('superagent');
+const cors = require('cors');
 app.use(cors());
 
-// //constructor function
-// const Location = function(city) {
-//   //get the data
-//   const geoData = require('./data/geo.json')[0]; 
-//   console.log(geoData)
+//define routes
+// app.get('/', homeHandler);
+app.get('/location', locationHandler);
+app.get('/weather', weatherHandler);
 
 
-  //build the object
-  // this.search_query = city;
+//LOCATION
 
+// function homeHandler(req, res) {
+//   res.status(200).send('Server is alive this is the home page');
 // }
+let locations = {};
+function locationHandler(req, res) {
+  let city = req.query.city;
+  let key = process.env.LOCATION_IQ_KEY;
+  const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json&limit=1`;
+
+  if (locations[url]) {
+    res.send(locations[url]);
+  } else {
+    superagent.get(url)
+      .then(data => {
+        const geoData = data.body[0];
+        const location = new Location(city, geoData);
+        locations[url] = location;
+        res.send(location);
+      })
+      .catch(() => {
+        errorHandler('You done messed up A A Ron', req, res);
+      })
+    }
+  }
+  
+  //constructor
+  function Location(city, geoData) {
+    this.search_query = city;
+    this.formatted_query = geoData.display_name;
+    this.latitude = geoData.lat;
+    this.longitude = geoData.lon;
+
+}
+// function errorHandler(err, req, res) {
+  //   console.log('ERROR', err);  
+  //   res.status(500).send(err);
+  // }
+  
+  // function notFoundHandler(req, res) {
+    //   res.status(404).send('this route does not exist')  
+    // };
+    
+    
+    
+    
+    function weatherHandler(req, res) {
+      
+      let latitude = req.query.latitude;
+  let longitude = req.query.longitude;
+  let key = process.env.WEATHER_API_KEY;
+
+  const url = `https://api.darksky.net/forecast/${key}/${latitude},${longitude}`;
+  
+  superagent.get(url)
+  .then(data => {
+    const weatherSummaries = data.body.daily.data.map(day => {
+      return new Weather(day);
+    });  
+    res.status(200).json(weatherSummaries);
+  })  
+  .catch(() => {
+    errorHandler('so sad, too bad, try agian', req, res);
+  });  
+  
+}    
+
+function Weather(day) {
+  this.forecast = day.summary;
+  this.time = new Date(day.time * 1000).toString().slice(0, 15);
+}  
+
+app.use('*', notFoundHandler);
+app.use(errorHandler);
+
+function notFoundHandler(req, res) {res.status(404).send('clever girl');
+}
+
+function errorHandler(error, req, res) {console.log('no soup for you',error);
+res.status(500).send(error);
+}
 
 
-
-
-/* {
-  search_query: 'Lynwood'
-  formatted_query: etc etc...'
-}}
-*/
-
-
-
-// //routes
-// app.get('/', (req, res) => {
-//   // console.log(req.query);
-//   // console.log(req.params); 
-//   console.log('Im alive');
-//   res.status(200).send('Server is alive');
-// })
-
-app.get('/location', (req,res) => {
-  console.log('hi!');
-  const reqCity = req.query.city;
-  // const responseObj = new Location(reqCity);
-  console.log('made it past constructor');
-  res.send('It got to the location route!');
-
-})
-
-// app.get('*',(req,res) => {
-//   res.status(404).send('that route cannot be found');
-// })
-
-
-
-//configure port
-app.listen(PORT, () => {console.log(`Your server is listening on ${PORT}`)});
+app.listen(PORT, () => console.log(`Your server is listening on ${PORT}`));
