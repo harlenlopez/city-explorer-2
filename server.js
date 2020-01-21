@@ -6,11 +6,11 @@
 require('dotenv').config();
 
 const express = require('express');
-// const pg = require('pg');
+const pg = require('pg');
 const PORT = process.env.PORT || 3001;
 const app = express();
-// const client = new pg.Client(precess.env.DATABASE_URL);
-// client.on('error', err => console.error(err));
+const client = new pg.Client(precess.env.DATABASE_URL);
+client.on('error', err => console.error(err));
 const superagent = require('superagent');
 const cors = require('cors');
 
@@ -21,11 +21,21 @@ app.use(cors());
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
 app.get('/events', events);
+app.use('*', notFoundHandler);
+app.use(errorHandler);
 
 
 
 //LOCATION
 
+function notFoundHandler(req, res) {
+  res.status(404).send('this route does not exist')  
+};
+
+function errorHandler(err, req, res) {
+  console.log('ERROR', err);  
+  res.status(500).send(err);
+}
 // function homeHandler(req, res) {
 //   res.status(200).send('Server is alive this is the home page');
 // }
@@ -63,14 +73,7 @@ function Location(city, geoData) {
   this.longitude = geoData.lon;
 
 }
-// function errorHandler(err, req, res) {
-//   console.log('ERROR', err);  
-//   res.status(500).send(err);
-// }
 
-// function notFoundHandler(req, res) {
-//   res.status(404).send('this route does not exist')  
-// };
 
 
 
